@@ -32,6 +32,7 @@ void Application::Initialise()
 	CreateWindow();
 	CreateInstance();
 	CreateDebugCallback();
+	CreateSurface();
 	SelectPhysicalDevice();
 	CreateDevice();
 }
@@ -39,6 +40,7 @@ void Application::Initialise()
 void Application::Destroy()
 {
 	DestroyDevice();
+	DestroySurface();
 	DestroyDebugCallback();
 	DestroyInstance();
 	DestroyWindow();
@@ -259,6 +261,19 @@ void Application::ProxyDestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebu
 	{
 		std::cout << "WARNING: Could not find vkDestroyDebugUtilsMessengerEXT.\n";
 	}
+}
+
+void Application::CreateSurface()
+{
+	if (glfwCreateWindowSurface(instance,window,nullptr,&surface) != VK_SUCCESS)
+	{
+		throw std::runtime_error("ERROR: Could not create surface.\n");
+	}
+}
+
+void Application::DestroySurface()
+{
+	vkDestroySurfaceKHR(instance, surface, nullptr);
 }
 
 void Application::SelectPhysicalDevice()

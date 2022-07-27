@@ -20,6 +20,7 @@ protected:
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue gQueue;
+	VkSurfaceKHR surface;
 private:
 	void Initialise();
 	void Destroy();
@@ -39,6 +40,8 @@ private:
 	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
 	static VkResult ProxyCreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
 	static void ProxyDestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
+	void CreateSurface();
+	void DestroySurface();
 	void SelectPhysicalDevice();
 	std::vector<VkPhysicalDevice> GetPhysicalDevices();
 	void CreateDevice();
