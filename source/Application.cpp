@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <set>
 
 Application::Application() :
 	instance(VkInstance{}),
@@ -12,7 +13,9 @@ Application::Application() :
 	debugMessenger(VkDebugUtilsMessengerEXT{}),
 	physicalDevice(VK_NULL_HANDLE),
 	device(VK_NULL_HANDLE),
-	gQueue(VK_NULL_HANDLE)
+	gQueue(VK_NULL_HANDLE),
+	surface(VK_NULL_HANDLE),
+	pQueue(VK_NULL_HANDLE)
 {
 	//Determine compile mode.
 #ifndef NDEBUG
@@ -316,20 +319,30 @@ std::vector<VkPhysicalDevice> Application::GetPhysicalDevices()
 void Application::CreateDevice()
 {
 	uint32_t graphicsFamilyIndex = GetQueueFamilyIndex(physicalDevice, VK_QUEUE_GRAPHICS_BIT);
-	float graphicsPriority = 1.f;
+	uint32_t presentationFamilyIndex = GetQueueFamilyIndex(physicalDevice, VK_QUEUE_FLAG_BITS_MAX_ENUM);
+	
+	std::set<uint32_t> uniqueQueueFamilies = { graphicsFamilyIndex,presentationFamilyIndex };
 
-	VkDeviceQueueCreateInfo gQueueInfo{};
-	gQueueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	gQueueInfo.queueFamilyIndex = graphicsFamilyIndex;
-	gQueueInfo.queueCount = 1u;
-	gQueueInfo.pQueuePriorities = &graphicsPriority;
+	float queuePriority = 1.f;
+
+	std::vector<VkDeviceQueueCreateInfo> queueInfos;
+	for (auto& queueFamily : uniqueQueueFamilies)
+	{
+		VkDeviceQueueCreateInfo info{};
+		info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		info.queueFamilyIndex = queueFamily;
+		info.queueCount = 1;
+		info.pQueuePriorities = &queuePriority;
+		
+		queueInfos.push_back(info);
+	}
 
 	VkPhysicalDeviceFeatures features{};
 
 	VkDeviceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	createInfo.pQueueCreateInfos = &gQueueInfo;
-	createInfo.queueCreateInfoCount = 1u;
+	createInfo.pQueueCreateInfos = queueInfos.data();
+	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size());
 	createInfo.pEnabledFeatures = &features;
 	
 	VkResult result = vkCreateDevice(physicalDevice, &createInfo, nullptr, &device);
@@ -339,6 +352,7 @@ void Application::CreateDevice()
 	}
 
 	vkGetDeviceQueue(device, graphicsFamilyIndex, 0, &gQueue);
+	vkGetDeviceQueue(device, presentationFamilyIndex, 0, &pQueue);
 }
 
 void Application::DestroyDevice()
@@ -350,14 +364,33 @@ uint32_t Application::GetQueueFamilyIndex(VkPhysicalDevice device, VkQueueFlagBi
 {
 	std::vector<VkQueueFamilyProperties> families = GetQueueFamilies(device);
 
-	uint32_t index = 0u;
-	for (auto& family : families)
+	//If bit is set to max value, then look for queue family with presentation support.
+	if (bit & VK_QUEUE_FLAG_BITS_MAX_ENUM)
 	{
-		if (family.queueFlags & bit)
+		uint32_t index = 0u;
+		for (auto& family : families)
 		{
-			return index;
+			VkBool32 presentationSupport = false;
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, index, surface, &presentationSupport);
+
+			if (presentationSupport == true)
+			{
+				return index;
+			}
+			index++;
 		}
-		index++;
+	}
+	else //Otherwise search for queue family specified with bit.
+	{
+		uint32_t index = 0u;
+		for (auto& family : families)
+		{
+			if (family.queueFlags & bit)
+			{
+				return index;
+			}
+			index++;
+		}
 	}
 
 	throw std::runtime_error("ERROR: Queue family could not found.\n");

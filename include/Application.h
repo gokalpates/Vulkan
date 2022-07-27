@@ -21,6 +21,7 @@ protected:
 	VkDevice device;
 	VkQueue gQueue;
 	VkSurfaceKHR surface;
+	VkQueue pQueue;
 private:
 	void Initialise();
 	void Destroy();
