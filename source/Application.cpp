@@ -1,7 +1,6 @@
 #include "Application.h"
 
 #include <stdexcept>
-#include <string>
 #include <iostream>
 #include <map>
 #include <set>
@@ -281,24 +280,74 @@ void Application::DestroySurface()
 
 void Application::SelectPhysicalDevice()
 {
-	//For now, just select first Discrete GPU that found.
-
+	//Select first discrete GPU with adequate extensions and properties that found.
 	std::vector<VkPhysicalDevice> devices = GetPhysicalDevices();
 
 	for (auto& candicateDevice : devices)
 	{
+		//Get device features and properties.
 		VkPhysicalDeviceProperties deviceProperties;
 		VkPhysicalDeviceFeatures deviceFeatures;
 		vkGetPhysicalDeviceProperties(candicateDevice, &deviceProperties);
 		vkGetPhysicalDeviceFeatures(candicateDevice, &deviceFeatures);
 
-		if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+		std::cout << "INFO: Checking " << deviceProperties.deviceName << " for suitability.\n";
+		
+		if (!(deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU))
 		{
-			physicalDevice = candicateDevice;
-			std::cout << "INFO: " << deviceProperties.deviceName << " is selected.\n";
-			break;
+			continue;
+		}
+
+		//Device extensions.
+		if (!QueryDeviceExtensions(candicateDevice, deviceProperties.deviceName))
+		{
+			continue;
+		}
+
+		//Swapchain properties. NOTE: Swapchain support already queried above.
+		if (!QuerySwapchainProperties(candicateDevice))
+		{
+			continue;
+		}
+
+		physicalDevice = candicateDevice;
+		std::cout << "INFO: " << deviceProperties.deviceName << " is selected.\n";
+		break;
+	}
+
+	if (physicalDevice == VK_NULL_HANDLE)
+	{
+		throw std::runtime_error("ERROR: There is no appropriate physical device found.\n");
+	}
+}
+
+bool Application::QueryDeviceExtensions(VkPhysicalDevice device, std::string deviceName)
+{
+	bool suitable = true;
+
+	//Device extensions.
+	std::vector<VkExtensionProperties> supported = GetSupportedDeviceExtensions(device);
+	std::vector<const char*> requested = GetRequestedDeviceExtensions();
+
+	for (auto& r : requested)
+	{
+		bool found = false;
+		for (auto& s : supported)
+		{
+			if (std::string(s.extensionName) == r)
+			{
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+		{
+			std::cout << "INFO: " << deviceName << " has not required device extension.\n";
+			suitable = false;
 		}
 	}
+
+	return suitable;
 }
 
 std::vector<VkPhysicalDevice> Application::GetPhysicalDevices()
@@ -314,6 +363,62 @@ std::vector<VkPhysicalDevice> Application::GetPhysicalDevices()
 
 	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 	return devices;
+}
+
+std::vector<VkExtensionProperties> Application::GetSupportedDeviceExtensions(VkPhysicalDevice device)
+{
+	uint32_t extensionCount = 0u;
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+	std::vector<VkExtensionProperties> extensions(extensionCount);
+
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, extensions.data());
+	return extensions;
+}
+
+std::vector<const char*> Application::GetRequestedDeviceExtensions()
+{
+	std::vector<const char*> requested = {
+		"VK_KHR_swapchain"
+	};
+
+	return requested;
+}
+
+bool Application::QuerySwapchainProperties(VkPhysicalDevice device)
+{
+	bool suitable = true;
+
+	VkSurfaceCapabilitiesKHR capabilities{};
+	std::vector<VkSurfaceFormatKHR> formats;
+	std::vector<VkPresentModeKHR> presentModes;
+
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &capabilities);
+	
+	uint32_t formatCount = 0u;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+
+	if (formatCount != 0u)
+	{
+		formats.resize(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, formats.data());
+	}
+
+	uint32_t presentModeCount = 0u;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+
+	if (formatCount != 0u)
+	{
+		presentModes.resize(presentModeCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, presentModes.data());
+	}
+
+	if (formats.empty() || presentModes.empty())
+	{
+		suitable = false;
+	}
+
+	return suitable;
 }
 
 void Application::CreateDevice()
@@ -339,12 +444,16 @@ void Application::CreateDevice()
 
 	VkPhysicalDeviceFeatures features{};
 
+	std::vector<const char*> extensions = GetRequestedDeviceExtensions();
+
 	VkDeviceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	createInfo.pQueueCreateInfos = queueInfos.data();
 	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size());
 	createInfo.pEnabledFeatures = &features;
-	
+	createInfo.ppEnabledExtensionNames = extensions.data();
+	createInfo.enabledExtensionCount = 1u;
+
 	VkResult result = vkCreateDevice(physicalDevice, &createInfo, nullptr, &device);
 	if (result != VK_SUCCESS)
 	{

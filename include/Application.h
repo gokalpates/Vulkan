@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
@@ -44,7 +45,11 @@ private:
 	void CreateSurface();
 	void DestroySurface();
 	void SelectPhysicalDevice();
+	bool QueryDeviceExtensions(VkPhysicalDevice device, std::string deviceName);
 	std::vector<VkPhysicalDevice> GetPhysicalDevices();
+	std::vector<VkExtensionProperties> GetSupportedDeviceExtensions(VkPhysicalDevice device);
+	std::vector<const char*> GetRequestedDeviceExtensions();
+	bool QuerySwapchainProperties(VkPhysicalDevice device);
 	void CreateDevice();
 	void DestroyDevice();
 	uint32_t GetQueueFamilyIndex(VkPhysicalDevice device, VkQueueFlagBits bit);
