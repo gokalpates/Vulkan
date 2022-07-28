@@ -54,5 +54,9 @@ private:
 	void DestroyDevice();
 	uint32_t GetQueueFamilyIndex(VkPhysicalDevice device, VkQueueFlagBits bit);
 	std::vector<VkQueueFamilyProperties> GetQueueFamilies(VkPhysicalDevice device);
+	void CreateSwapchain();
+	void DestroySwapchain();
+	VkSurfaceFormatKHR ChooseSwapchainSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
+	VkPresentModeKHR ChooseSwapchainPresentationMode(const std::vector<VkPresentModeKHR>& presentModes);
+	VkExtent2D ChooseSwapchainExtend(const VkSurfaceCapabilitiesKHR& capabilities);
 };
-

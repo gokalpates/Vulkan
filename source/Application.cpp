@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <algorithm>
 
 Application::Application() :
 	instance(VkInstance{}),
@@ -514,6 +515,60 @@ std::vector<VkQueueFamilyProperties> Application::GetQueueFamilies(VkPhysicalDev
 
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 	return queueFamilies;
+}
+
+void Application::CreateSwapchain()
+{
+}
+
+void Application::DestroySwapchain()
+{
+}
+
+VkSurfaceFormatKHR Application::ChooseSwapchainSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats)
+{
+	for (auto& format : formats)
+	{
+		if (format.format == VK_FORMAT_R8G8B8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+		{
+			return format;
+		}
+	}
+
+	return formats[0];
+}
+
+VkPresentModeKHR Application::ChooseSwapchainPresentationMode(const std::vector<VkPresentModeKHR>& presentModes)
+{
+	for (auto& presentMode : presentModes)
+	{
+		if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+		{
+			return presentMode;
+		}
+	}
+
+	return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D Application::ChooseSwapchainExtend(const VkSurfaceCapabilitiesKHR& capabilities)
+{
+	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+		return capabilities.currentExtent;
+	}
+	else {
+		int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+
+		VkExtent2D actualExtent = {
+			static_cast<uint32_t>(width),
+			static_cast<uint32_t>(height)
+		};
+
+		actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+		actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+		return actualExtent;
 }
 
 void Application::CreateDebugCallback()
