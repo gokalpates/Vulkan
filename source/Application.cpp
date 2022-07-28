@@ -553,10 +553,12 @@ VkPresentModeKHR Application::ChooseSwapchainPresentationMode(const std::vector<
 
 VkExtent2D Application::ChooseSwapchainExtend(const VkSurfaceCapabilitiesKHR& capabilities)
 {
-	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) 
+	{
 		return capabilities.currentExtent;
 	}
-	else {
+	else 
+	{
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
 
@@ -569,6 +571,7 @@ VkExtent2D Application::ChooseSwapchainExtend(const VkSurfaceCapabilitiesKHR& ca
 		actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 
 		return actualExtent;
+	}
 }
 
 void Application::CreateDebugCallback()
