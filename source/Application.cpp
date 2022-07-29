@@ -16,7 +16,10 @@ Application::Application() :
 	gQueue(VK_NULL_HANDLE),
 	surface(VK_NULL_HANDLE),
 	pQueue(VK_NULL_HANDLE),
-	swapchain(VK_NULL_HANDLE)
+	swapchain(VK_NULL_HANDLE),
+	swapchainImages({}),
+	swapchainImageFormat(),
+	swapchainExtent(VkExtent2D())
 {
 	//Determine compile mode.
 #ifndef NDEBUG
@@ -85,13 +88,13 @@ void Application::CreateInstance()
 	if (debugMode)
 	{
 		layers = GetInstanceLayers();
-		instanceInfo.enabledLayerCount = layers.size();
+		instanceInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
 		instanceInfo.ppEnabledLayerNames = layers.data();
 	}
 
 	//Extensions.
 	std::vector<const char*> extensions = GetInstanceExtensions();
-	instanceInfo.enabledExtensionCount = extensions.size();
+	instanceInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 	instanceInfo.ppEnabledExtensionNames = extensions.data();
 
 	VkResult result = vkCreateInstance(&instanceInfo, nullptr, &instance);
@@ -486,7 +489,7 @@ uint32_t Application::GetQueueFamilyIndex(VkPhysicalDevice device, VkQueueFlagBi
 			VkBool32 presentationSupport = false;
 			vkGetPhysicalDeviceSurfaceSupportKHR(device, index, surface, &presentationSupport);
 
-			if (presentationSupport == true)
+			if (presentationSupport == VK_TRUE)
 			{
 				return index;
 			}
@@ -546,18 +549,18 @@ void Application::CreateSwapchain()
 		vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
 	}
 
-	VkSurfaceFormatKHR format = ChooseSwapchainSurfaceFormat(formats);
+	VkSurfaceFormatKHR surfaceFormat = ChooseSwapchainSurfaceFormat(formats);
 	VkPresentModeKHR presentMode = ChooseSwapchainPresentationMode(presentModes);
 	VkExtent2D extent = ChooseSwapchainExtend(capabilities);
 
-	uint32_t imageCount = capabilities.minImageCount + 2;
+	uint32_t desiredImageCount = capabilities.minImageCount + 2;
 
 	VkSwapchainCreateInfoKHR info{};
 	info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	info.surface = surface;
-	info.minImageCount = imageCount;
-	info.imageFormat = format.format;
-	info.imageColorSpace = format.colorSpace;
+	info.minImageCount = desiredImageCount;
+	info.imageFormat = surfaceFormat.format;
+	info.imageColorSpace = surfaceFormat.colorSpace;
 	info.imageExtent = extent;
 	info.imageArrayLayers = 1;
 	info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -577,6 +580,16 @@ void Application::CreateSwapchain()
 	{
 		throw std::runtime_error("ERROR: Failed to create swapchain.\n");
 	}
+
+	swapchainImageFormat = surfaceFormat.format;
+	swapchainExtent = extent;
+
+	uint32_t imageCount = 0;
+	vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
+
+	swapchainImages.resize(imageCount);
+
+	vkGetSwapchainImagesKHR(device, swapchain, &imageCount, swapchainImages.data());
 }
 
 void Application::DestroySwapchain()

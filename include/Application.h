@@ -24,6 +24,9 @@ protected:
 	VkSurfaceKHR surface;
 	VkQueue pQueue;
 	VkSwapchainKHR swapchain;
+	std::vector<VkImage> swapchainImages;
+	VkFormat swapchainImageFormat;
+	VkExtent2D swapchainExtent;
 private:
 	void Initialise();
 	void Destroy();
