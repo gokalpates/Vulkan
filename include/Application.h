@@ -23,6 +23,7 @@ protected:
 	VkQueue gQueue;
 	VkSurfaceKHR surface;
 	VkQueue pQueue;
+	VkSwapchainKHR swapchain;
 private:
 	void Initialise();
 	void Destroy();

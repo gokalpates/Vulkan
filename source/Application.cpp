@@ -15,7 +15,8 @@ Application::Application() :
 	device(VK_NULL_HANDLE),
 	gQueue(VK_NULL_HANDLE),
 	surface(VK_NULL_HANDLE),
-	pQueue(VK_NULL_HANDLE)
+	pQueue(VK_NULL_HANDLE),
+	swapchain(VK_NULL_HANDLE)
 {
 	//Determine compile mode.
 #ifndef NDEBUG
@@ -38,10 +39,12 @@ void Application::Initialise()
 	CreateSurface();
 	SelectPhysicalDevice();
 	CreateDevice();
+	CreateSwapchain();
 }
 
 void Application::Destroy()
 {
+	DestroySwapchain();
 	DestroyDevice();
 	DestroySurface();
 	DestroyDebugCallback();
@@ -519,10 +522,66 @@ std::vector<VkQueueFamilyProperties> Application::GetQueueFamilies(VkPhysicalDev
 
 void Application::CreateSwapchain()
 {
+	VkSurfaceCapabilitiesKHR capabilities{};
+	std::vector<VkSurfaceFormatKHR> formats;
+	std::vector<VkPresentModeKHR> presentModes;
+
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
+
+	uint32_t formatCount = 0u;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
+
+	if (formatCount != 0u)
+	{
+		formats.resize(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, formats.data());
+	}
+
+	uint32_t presentModeCount = 0u;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
+
+	if (formatCount != 0u)
+	{
+		presentModes.resize(presentModeCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
+	}
+
+	VkSurfaceFormatKHR format = ChooseSwapchainSurfaceFormat(formats);
+	VkPresentModeKHR presentMode = ChooseSwapchainPresentationMode(presentModes);
+	VkExtent2D extent = ChooseSwapchainExtend(capabilities);
+
+	uint32_t imageCount = capabilities.minImageCount + 2;
+
+	VkSwapchainCreateInfoKHR info{};
+	info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	info.surface = surface;
+	info.minImageCount = imageCount;
+	info.imageFormat = format.format;
+	info.imageColorSpace = format.colorSpace;
+	info.imageExtent = extent;
+	info.imageArrayLayers = 1;
+	info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	
+	//We are assuming that pQueues and gQueues are same.
+	info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	info.queueFamilyIndexCount = 0;
+	info.pQueueFamilyIndices = nullptr;
+
+	info.preTransform = capabilities.currentTransform;
+	info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	info.presentMode = presentMode;
+	info.clipped = VK_TRUE;
+	info.oldSwapchain = VK_NULL_HANDLE;
+
+	if (vkCreateSwapchainKHR(device,&info,nullptr,&swapchain) != VK_SUCCESS)
+	{
+		throw std::runtime_error("ERROR: Failed to create swapchain.\n");
+	}
 }
 
 void Application::DestroySwapchain()
 {
+	vkDestroySwapchainKHR(device, swapchain, nullptr);
 }
 
 VkSurfaceFormatKHR Application::ChooseSwapchainSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats)
