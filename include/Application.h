@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
@@ -20,6 +21,13 @@ protected:
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue gQueue;
+	VkSurfaceKHR surface;
+	VkQueue pQueue;
+	VkSwapchainKHR swapchain;
+	std::vector<VkImage> swapchainImages;
+	VkFormat swapchainImageFormat;
+	VkExtent2D swapchainExtent;
+	std::vector<VkImageView> swapchainImageViews;
 private:
 	void Initialise();
 	void Destroy();
@@ -39,11 +47,23 @@ private:
 	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
 	static VkResult ProxyCreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
 	static void ProxyDestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
+	void CreateSurface();
+	void DestroySurface();
 	void SelectPhysicalDevice();
+	bool QueryDeviceExtensions(VkPhysicalDevice device, std::string deviceName);
 	std::vector<VkPhysicalDevice> GetPhysicalDevices();
+	std::vector<VkExtensionProperties> GetSupportedDeviceExtensions(VkPhysicalDevice device);
+	std::vector<const char*> GetRequestedDeviceExtensions();
+	bool QuerySwapchainProperties(VkPhysicalDevice device);
 	void CreateDevice();
 	void DestroyDevice();
 	uint32_t GetQueueFamilyIndex(VkPhysicalDevice device, VkQueueFlagBits bit);
 	std::vector<VkQueueFamilyProperties> GetQueueFamilies(VkPhysicalDevice device);
+	void CreateSwapchain();
+	void DestroySwapchain();
+	VkSurfaceFormatKHR ChooseSwapchainSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
+	VkPresentModeKHR ChooseSwapchainPresentationMode(const std::vector<VkPresentModeKHR>& presentModes);
+	VkExtent2D ChooseSwapchainExtend(const VkSurfaceCapabilitiesKHR& capabilities);
+	void CreateImageViews();
+	void DestroyImageViews();
 };
-

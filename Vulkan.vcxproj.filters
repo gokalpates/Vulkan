@@ -323,4 +323,8 @@
     <Library Include="external\lib\dxcompiler.lib" />
     <Library Include="external\lib\GenericCodeGen.lib" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+    <None Include=".gitignore" />
+  </ItemGroup>
 </Project>
