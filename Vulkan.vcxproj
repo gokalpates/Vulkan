@@ -271,6 +271,11 @@
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="README.md" />
+    <None Include="shader\compile.bat" />
+    <None Include="shader\frag.spv" />
+    <None Include="shader\shader.frag" />
+    <None Include="shader\shader.vert" />
+    <None Include="shader\vert.spv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

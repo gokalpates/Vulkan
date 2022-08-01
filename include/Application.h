@@ -66,4 +66,8 @@ private:
 	VkExtent2D ChooseSwapchainExtend(const VkSurfaceCapabilitiesKHR& capabilities);
 	void CreateImageViews();
 	void DestroyImageViews();
+	void CreateGraphicsPipeline();
+	void DestroyGraphicsPipeline();
+	static std::vector<char> ReadFile(std::string filename);
+	VkShaderModule CreateShaderModule(const std::vector<char>& code);
 };
