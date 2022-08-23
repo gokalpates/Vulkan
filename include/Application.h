@@ -28,6 +28,7 @@ protected:
 	VkFormat swapchainImageFormat;
 	VkExtent2D swapchainExtent;
 	std::vector<VkImageView> swapchainImageViews;
+	VkPipelineLayout pipelineLayout;
 private:
 	void Initialise();
 	void Destroy();
