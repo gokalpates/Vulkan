@@ -28,7 +28,9 @@ protected:
 	VkFormat swapchainImageFormat;
 	VkExtent2D swapchainExtent;
 	std::vector<VkImageView> swapchainImageViews;
+	VkRenderPass renderPass;
 	VkPipelineLayout pipelineLayout;
+	VkPipeline graphicsPipeline;
 private:
 	void Initialise();
 	void Destroy();
@@ -67,6 +69,8 @@ private:
 	VkExtent2D ChooseSwapchainExtend(const VkSurfaceCapabilitiesKHR& capabilities);
 	void CreateImageViews();
 	void DestroyImageViews();
+	void CreateRenderPass();
+	void DestroyRenderPass();
 	void CreateGraphicsPipeline();
 	void DestroyGraphicsPipeline();
 	static std::vector<char> ReadFile(std::string filename);
