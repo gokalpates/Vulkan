@@ -31,6 +31,7 @@ protected:
 	VkRenderPass renderPass;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
+	std::vector<VkFramebuffer> swapchainFramebuffers;
 private:
 	void Initialise();
 	void Destroy();
@@ -75,4 +76,6 @@ private:
 	void DestroyGraphicsPipeline();
 	static std::vector<char> ReadFile(std::string filename);
 	VkShaderModule CreateShaderModule(const std::vector<char>& code);
+	void CreateFramebuffers();
+	void DestroyFramebuffers();
 };
