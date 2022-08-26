@@ -24,7 +24,9 @@ Application::Application() :
 	swapchainImageViews({}),
 	renderPass(VK_NULL_HANDLE),
 	pipelineLayout(VK_NULL_HANDLE),
-	graphicsPipeline(VK_NULL_HANDLE)
+	graphicsPipeline(VK_NULL_HANDLE),
+	commandPool(VK_NULL_HANDLE),
+	commandBuffer(VK_NULL_HANDLE)
 {
 	//Determine compile mode.
 #ifndef NDEBUG
@@ -52,10 +54,13 @@ void Application::Initialise()
 	CreateRenderPass();
 	CreateGraphicsPipeline();
 	CreateFramebuffers();
+	CreateCommandPool();
+	CreateCommandBuffer();
 }
 
 void Application::Destroy()
 {
+	DestroyCommandPool();
 	DestroyFramebuffers();
 	DestroyGraphicsPipeline();
 	DestroyRenderPass();
@@ -925,6 +930,40 @@ void Application::DestroyFramebuffers()
 	for (auto& framebuffer : swapchainFramebuffers)
 	{
 		vkDestroyFramebuffer(device, framebuffer, nullptr);
+	}
+}
+
+void Application::CreateCommandPool()
+{
+	uint32_t graphicsIndex = GetQueueFamilyIndex(physicalDevice, VK_QUEUE_GRAPHICS_BIT);
+
+	VkCommandPoolCreateInfo commandPoolCreateInfo{};
+	commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	commandPoolCreateInfo.queueFamilyIndex = graphicsIndex;
+
+	if (vkCreateCommandPool(device,&commandPoolCreateInfo,nullptr,&commandPool) != VK_SUCCESS)
+	{
+		throw std::runtime_error("ERROR: Could not create command pool.\n");
+	}
+}
+
+void Application::DestroyCommandPool()
+{
+	vkDestroyCommandPool(device, commandPool, nullptr);
+}
+
+void Application::CreateCommandBuffer()
+{
+	VkCommandBufferAllocateInfo allocateInfo{};
+	allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocateInfo.commandPool = commandPool;
+	allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocateInfo.commandBufferCount = 1;
+
+	if (vkAllocateCommandBuffers(device, &allocateInfo, &commandBuffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error("ERROR: Failed to allocate command buffer.\n");
 	}
 }
 

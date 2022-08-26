@@ -32,6 +32,8 @@ protected:
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> swapchainFramebuffers;
+	VkCommandPool commandPool;
+	VkCommandBuffer commandBuffer;
 private:
 	void Initialise();
 	void Destroy();
@@ -78,4 +80,7 @@ private:
 	VkShaderModule CreateShaderModule(const std::vector<char>& code);
 	void CreateFramebuffers();
 	void DestroyFramebuffers();
+	void CreateCommandPool();
+	void DestroyCommandPool();
+	void CreateCommandBuffer();
 };
