@@ -83,4 +83,5 @@ private:
 	void CreateCommandPool();
 	void DestroyCommandPool();
 	void CreateCommandBuffer();
+	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 };
