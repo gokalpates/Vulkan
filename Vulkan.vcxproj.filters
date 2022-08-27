@@ -326,5 +326,12 @@
   <ItemGroup>
     <None Include="README.md" />
     <None Include=".gitignore" />
+    <None Include="shader\shader.vert" />
+    <None Include="shader\shader.frag" />
+    <None Include="shader\compile.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="shader\vert.spv" />
+    <None Include="shader\frag.spv" />
   </ItemGroup>
 </Project>

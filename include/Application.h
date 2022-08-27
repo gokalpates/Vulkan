@@ -28,6 +28,12 @@ protected:
 	VkFormat swapchainImageFormat;
 	VkExtent2D swapchainExtent;
 	std::vector<VkImageView> swapchainImageViews;
+	VkRenderPass renderPass;
+	VkPipelineLayout pipelineLayout;
+	VkPipeline graphicsPipeline;
+	std::vector<VkFramebuffer> swapchainFramebuffers;
+	VkCommandPool commandPool;
+	VkCommandBuffer commandBuffer;
 private:
 	void Initialise();
 	void Destroy();
@@ -66,4 +72,16 @@ private:
 	VkExtent2D ChooseSwapchainExtend(const VkSurfaceCapabilitiesKHR& capabilities);
 	void CreateImageViews();
 	void DestroyImageViews();
+	void CreateRenderPass();
+	void DestroyRenderPass();
+	void CreateGraphicsPipeline();
+	void DestroyGraphicsPipeline();
+	static std::vector<char> ReadFile(std::string filename);
+	VkShaderModule CreateShaderModule(const std::vector<char>& code);
+	void CreateFramebuffers();
+	void DestroyFramebuffers();
+	void CreateCommandPool();
+	void DestroyCommandPool();
+	void CreateCommandBuffer();
+	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 };
