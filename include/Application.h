@@ -34,6 +34,9 @@ protected:
 	std::vector<VkFramebuffer> swapchainFramebuffers;
 	VkCommandPool commandPool;
 	VkCommandBuffer commandBuffer;
+	VkSemaphore sImageAvailable;
+	VkSemaphore sDoneRender;
+	VkFence fInFlight;
 private:
 	void Initialise();
 	void Destroy();
@@ -84,4 +87,6 @@ private:
 	void DestroyCommandPool();
 	void CreateCommandBuffer();
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+	void CreateSyncPrimitives();
+	void DestroySyncPrimitives();
 };

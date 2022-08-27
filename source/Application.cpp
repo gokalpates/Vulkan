@@ -26,7 +26,10 @@ Application::Application() :
 	pipelineLayout(VK_NULL_HANDLE),
 	graphicsPipeline(VK_NULL_HANDLE),
 	commandPool(VK_NULL_HANDLE),
-	commandBuffer(VK_NULL_HANDLE)
+	commandBuffer(VK_NULL_HANDLE),
+	sImageAvailable(VK_NULL_HANDLE),
+	sDoneRender(VK_NULL_HANDLE),
+	fInFlight(VK_NULL_HANDLE)
 {
 	//Determine compile mode.
 #ifndef NDEBUG
@@ -56,10 +59,12 @@ void Application::Initialise()
 	CreateFramebuffers();
 	CreateCommandPool();
 	CreateCommandBuffer();
+	CreateSyncPrimitives();
 }
 
 void Application::Destroy()
 {
+	DestroySyncPrimitives();
 	DestroyCommandPool();
 	DestroyFramebuffers();
 	DestroyGraphicsPipeline();
@@ -1015,6 +1020,29 @@ void Application::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t im
 	{
 		throw std::runtime_error("ERROR: Failed to record command buffer.\n");
 	}
+}
+
+void Application::CreateSyncPrimitives()
+{
+	VkSemaphoreCreateInfo semaphoreCreateInfo{};
+	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	VkFenceCreateInfo fenceCreateInfo{};
+	fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+	if (vkCreateSemaphore(device,&semaphoreCreateInfo,nullptr,&sImageAvailable) != VK_SUCCESS ||
+		vkCreateSemaphore(device,&semaphoreCreateInfo,nullptr,&sDoneRender) != VK_SUCCESS ||
+		vkCreateFence(device,&fenceCreateInfo,nullptr,&fInFlight) != VK_SUCCESS)
+	{
+		throw std::runtime_error("ERROR: Could not create sync objects.\n");
+	}
+}
+
+void Application::DestroySyncPrimitives()
+{
+	vkDestroySemaphore(device, sImageAvailable, nullptr);
+	vkDestroySemaphore(device, sDoneRender, nullptr);
+	vkDestroyFence(device, fInFlight, nullptr);
 }
 
 void Application::CreateDebugCallback()
