@@ -11,5 +11,7 @@ public:
 	void Run();
 private:
 	void MainLoop();
+	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+	void DrawFrames();
 };
 
