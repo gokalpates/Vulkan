@@ -35,7 +35,7 @@ protected:
 	VkCommandPool commandPool;
 	VkCommandBuffer commandBuffer;
 	VkSemaphore sImageAvailable;
-	VkSemaphore sDoneRender;
+	VkSemaphore sRenderingDone;
 	VkFence fInFlight;
 private:
 	void Initialise();
@@ -86,7 +86,6 @@ private:
 	void CreateCommandPool();
 	void DestroyCommandPool();
 	void CreateCommandBuffer();
-	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 	void CreateSyncPrimitives();
 	void DestroySyncPrimitives();
 };
