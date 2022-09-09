@@ -105,7 +105,7 @@ void Application::CreateInstance()
 	VkInstanceCreateInfo instanceInfo{};
 	instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instanceInfo.pApplicationInfo = &appInfo;
-	
+
 	//Validation layers.
 	std::vector<const char*> layers;
 	if (debugMode)
