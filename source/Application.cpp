@@ -25,11 +25,7 @@ Application::Application() :
 	renderPass(VK_NULL_HANDLE),
 	pipelineLayout(VK_NULL_HANDLE),
 	graphicsPipeline(VK_NULL_HANDLE),
-	commandPool(VK_NULL_HANDLE),
-	commandBuffer(VK_NULL_HANDLE),
-	sImageAvailable(VK_NULL_HANDLE),
-	sRenderingDone(VK_NULL_HANDLE),
-	fInFlight(VK_NULL_HANDLE)
+	commandPool(VK_NULL_HANDLE)
 {
 	//Determine compile mode.
 #ifndef NDEBUG
@@ -58,13 +54,10 @@ void Application::Initialise()
 	CreateGraphicsPipeline();
 	CreateFramebuffers();
 	CreateCommandPool();
-	CreateCommandBuffer();
-	CreateSyncPrimitives();
 }
 
 void Application::Destroy()
 {
-	DestroySyncPrimitives();
 	DestroyCommandPool();
 	DestroyFramebuffers();
 	DestroyGraphicsPipeline();
@@ -956,44 +949,6 @@ void Application::CreateCommandPool()
 void Application::DestroyCommandPool()
 {
 	vkDestroyCommandPool(device, commandPool, nullptr);
-}
-
-void Application::CreateCommandBuffer()
-{
-	VkCommandBufferAllocateInfo allocateInfo{};
-	allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocateInfo.commandPool = commandPool;
-	allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocateInfo.commandBufferCount = 1;
-
-	if (vkAllocateCommandBuffers(device, &allocateInfo, &commandBuffer) != VK_SUCCESS)
-	{
-		throw std::runtime_error("ERROR: Failed to allocate command buffer.\n");
-	}
-}
-
-void Application::CreateSyncPrimitives()
-{
-	VkSemaphoreCreateInfo semaphoreCreateInfo{};
-	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-	VkFenceCreateInfo fenceCreateInfo{};
-	fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-	if (vkCreateSemaphore(device,&semaphoreCreateInfo,nullptr,&sImageAvailable) != VK_SUCCESS ||
-		vkCreateSemaphore(device,&semaphoreCreateInfo,nullptr,&sRenderingDone) != VK_SUCCESS ||
-		vkCreateFence(device,&fenceCreateInfo,nullptr,&fInFlight) != VK_SUCCESS)
-	{
-		throw std::runtime_error("ERROR: Could not create sync objects.\n");
-	}
-}
-
-void Application::DestroySyncPrimitives()
-{
-	vkDestroySemaphore(device, sImageAvailable, nullptr);
-	vkDestroySemaphore(device, sRenderingDone, nullptr);
-	vkDestroyFence(device, fInFlight, nullptr);
 }
 
 void Application::CreateDebugCallback()
